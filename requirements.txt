@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+nltk
+sentence-transformers
+scikit-learn
+openai
+pyvis

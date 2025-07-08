@@ -7,7 +7,7 @@ from core.tree_manager import list_main_topics
 nltk.download("punkt")
 nltk.download("punkt_tab")
 nltk.download("averaged_perceptron_tagger")
-nltk.download("averaged_perceptron_tagger_eng")   # ← add this
+nltk.download("averaged_perceptron_tagger_eng") 
 
 _model = SentenceTransformer("all-MiniLM-L6-v2")
 

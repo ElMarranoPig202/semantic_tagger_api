@@ -1,4 +1,5 @@
 import os, requests
+from core.utils import strip_apologies
 
 MISTRAL_KEY = os.getenv("MISTRAL_API_KEY")
 MISTRAL_ENDPOINT = "https://api.mistral.ai/v1/chat/completions"
@@ -45,14 +46,18 @@ def mistral_generate_subtopics(comment: str, max_n: int = 4) -> list[str]:
     }
     res = requests.post(MISTRAL_ENDPOINT, json=payload, headers=headers)
     res.raise_for_status()
-    text = res.json()["choices"][0]["message"]["content"].strip()
+       # 1. Grab the raw content
+    raw_text = res.json()["choices"][0]["message"]["content"].strip()
 
-    # Try JSON parse first
+    # 2. Strip out any apology/commentary lines
+    clean_text = strip_apologies(raw_text)
+
+    # 3. Try JSON parse on the cleaned text
     try:
-        raw = requests.utils.json.loads(text)
+        raw = requests.utils.json.loads(clean_text)
     except Exception:
-        # Fallback split
-        raw = [t.strip() for t in text.strip("[]").split(",") if t]
+        # Fallback split on cleaned text
+        raw = [t.strip() for t in clean_text.strip("[]").split(",") if t]
 
     # Clean each entry
     out = []

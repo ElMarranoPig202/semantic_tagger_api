@@ -69,3 +69,15 @@ def insert_comment(tree_key: str, main: str, paths: list[list[str]], comment: st
 
     save_tree(tree_key, tree)
     return tree
+
+def list_main_topics(tree_key: str) -> list[str]:
+    """
+    Return the list of top-level (main) topic labels in a given tree.
+    """
+    tree = load_tree(tree_key)
+    # Each key is the normalized slug; __label holds the human text
+    topics = []
+    for slug, data in tree.items():
+        label = data.get("__label") or slug
+        topics.append(label)
+    return topics

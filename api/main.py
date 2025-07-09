@@ -9,6 +9,7 @@ from fastapi import FastAPI, Depends, HTTPException, Body
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer, util
+from core.utils import deduplicate_topics, filter_meta_topics
 
 from core.tree_manager       import create_tree, load_tree, insert_comment, list_main_topics
 from core.topic_extractor    import extract_main_topic, extract_topics
@@ -76,12 +77,25 @@ def tag_comment_endpoint(
     # 5) Ask Mistral for additional subtopics
     mistral_topics = mistral_generate_subtopics(comment)
 
-    # 6) Combine into “paths”
-    paths: list[list[str]] = []
+    # 6) Combine into “paths” and clean
+    raw_paths: list[list[str]] = []
     if noun_topics:
-        paths.append(noun_topics)
+        raw_paths.append(noun_topics)
     if mistral_topics:
-        paths.append(mistral_topics)
+        raw_paths.append(mistral_topics)
+
+    # 6a) Deduplicate within each sub-list
+    cleaned_paths = [deduplicate_topics(p) for p in raw_paths]
+
+    # 6b) Filter out meta-topics from each
+    cleaned_paths = [filter_meta_topics(p) for p in cleaned_paths]
+
+    # 6c) Optionally flatten into one list (comment out next two lines to keep nested)
+    flat = [topic for sub in cleaned_paths for topic in sub]
+    cleaned_paths = [deduplicate_topics(flat)]
+
+    paths = cleaned_paths
+
 
     # 7) Insert into the JSON tree
     try:

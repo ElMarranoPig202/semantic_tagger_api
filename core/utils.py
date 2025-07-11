@@ -1,5 +1,6 @@
 from rapidfuzz import fuzz
 import re
+import regex
 import emoji
 
 def is_similar(a: str, b: str, threshold: int = 80) -> bool:
@@ -37,16 +38,12 @@ def filter_meta_topics(topics: list[str]) -> list[str]:
     return cleaned
 
 
-
 def is_emoji_only(text: str) -> bool:
-    # Remove spaces, invisible characters
     stripped = re.sub(r"\s+", "", text.strip())
+    if not stripped:
+        return False
 
-    # Emoji regex (Unicode blocks)
-    emoji_pattern = re.compile(
-        r"^(?:[\u2600-\u27BF\u1F300-\u1F6FF\u1F900-\u1F9FF\u1FA70-\u1FAFF\u1F680-\u1F6FF\u1F600-\u1F64F"
-        r"\u200D\uFE0F\u23CF\u23E9-\u23FA\u24C2\u25AA-\u25FE\u00A9\u00AE\u3030\u2B05-\u2B07\u2934\u2935"
-        r"\u2190-\u21FF]+)+$"
-    )
-
-    return bool(emoji_pattern.match(stripped))
+    # Match emoji characters
+    emoji_char = regex.compile(r"\p{Emoji}", flags=regex.UNICODE)
+    
+    return all(emoji_char.fullmatch(char) for char in stripped)

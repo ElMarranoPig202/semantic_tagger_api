@@ -38,7 +38,11 @@ def mistral_generate_subtopics(comment: str, max_n: int = 4) -> list[str]:
     payload = {
         "model": "mistral-small",
         "messages": [
-            {"role": "system", "content": "You return subtopics in JSON array form."},
+            {"role": "system", "content": (
+                "You are an extractor that ONLY returns a JSON array of real-world subtopics. "
+                "If the comment has NO genuine subtopics, respond with an empty array: [] "
+                "Do NOT include any apologetic or meta‐commentary about JSON, emoticons, or escaping."
+            )},
             {"role": "user", "content": f"Extract up to {max_n} short subtopics from this comment as a JSON list:\n\n{comment}"}
         ],
         "max_tokens": max_n * 10,

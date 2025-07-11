@@ -10,6 +10,7 @@ from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer, util
 from core.utils import deduplicate_topics, filter_meta_topics
+from core.utils import is_emoji_only
 
 from core.tree_manager       import create_tree, load_tree, insert_comment, list_main_topics
 from core.topic_extractor    import extract_main_topic, extract_topics
@@ -59,6 +60,15 @@ def tag_comment_endpoint(
     """
     # 1) Extract the raw comment text
     comment = payload.comment
+    comment = comment.strip()
+
+    # 1a) Skip emoji-only comments
+    if is_emoji_only(comment):
+        return {
+            "tree_key": tree_key,
+            "skipped": True,
+            "reason": "Comment contains only emojis. Skipped tagging."
+        }
 
     # 2) Drop any user-supplied mistral_api_key
     payload.mistral_api_key = None
